@@ -1,26 +1,30 @@
 package main
 
 import (
-	"fmt"
+    "fmt"
 )
 
 func testRecursion(i int, c chan int) {
-	if i == 10 {
-		close(c)
-		return
-	}
+    defer close(c)
+    var testFunc func (int, chan int)
+    testFunc = func (i int, c chan int) {
+        if i > 10 {
+            return
+        }
+        c <- i
+        testFunc(i+1, c)
+    }
 
-	c <- i
-	testRecursion(i+1, c)
+    testFunc(i, c)
 }
 
 func main() {
-	c := make(chan int)
-	go testRecursion(0, c)
+    c := make(chan int)
+    go testRecursion(0, c)
 
-	for i := range c {
-		fmt.Println(i)
-	}
+    for i := range c {
+        fmt.Println(i)
+    }
 
-	fmt.Println("Hello, world!")
+    fmt.Println("Hello, world!")
 }
