@@ -6,25 +6,68 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
-func main() {
-	// regex := regexp.MustCompile(`Game (?P<gameNumber>\d): (?P<colors>\d+ ?(red|green|blue)(?:[, ;]?)+)+`)
-	regex := regexp.MustCompile(`(\d ?(red|green|blue)?)`)
+func isValidColor(color string) bool {
+	colorValues := strings.Split(strings.TrimSpace(color), " ")
 
-	f, err := os.Open("sample.txt")
+	val, err := strconv.ParseInt(colorValues[0], 10, 64)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	switch colorValues[1] {
+	case "red":
+		return val <= 12
+	case "green":
+		return val <= 13
+	case "blue":
+		return val <= 14
+	}
+
+	return false
+}
+
+func main() {
+	// f, err := os.Open("sample.txt")
+	f, err := os.Open("input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
+	total := 0
 
 	for scanner.Scan() {
-		// matches := regex.FindAllString(scanner.Text(), -1)
-		//
-		// fmt.Println(matches)
-		fmt.Println(scanner.Text(), regex.FindAllStringSubmatch(scanner.Text(), -1))
-		fmt.Println(regex.SubexpNames())
+		splitWithGame := strings.Split(scanner.Text(), ":")
+		r := regexp.MustCompile(`\d+`)
+		gameNumber := r.FindString(splitWithGame[0])
+
+		rounds := strings.Split(splitWithGame[1], ";")
+		validGame := true
+
+		for _, round := range rounds {
+			colors := strings.Split(round, ",")
+
+			for _, color := range colors {
+				validGame = validGame && isValidColor(color)
+			}
+		}
+
+		if validGame {
+			val, err := strconv.ParseInt(gameNumber, 10, 64)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			total += int(val)
+		}
 	}
+
+	fmt.Println(total)
 }
