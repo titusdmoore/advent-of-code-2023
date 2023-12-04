@@ -21,7 +21,7 @@ type PotentialPartNumber struct {
 
 func isValidPartNumber(line int, number PotentialPartNumber, input [][]byte) bool {
 	out := false
-	r := regexp.MustCompile(`[\*\$\=\#\%\/\&\+\-\@]`)
+	r := regexp.MustCompile(`[\*\$\=\#\%\/\&\+\-\@\\]`)
 
 	// Check above
 	if line > 0 {
@@ -33,12 +33,7 @@ func isValidPartNumber(line int, number PotentialPartNumber, input [][]byte) boo
 			start--
 		}
 
-		if end+1 < len(workingLine) {
-			end++
-		}
-
-		bytesAbove := workingLine[start:end]
-		fmt.Println(bytesAbove, number.value)
+		bytesAbove := workingLine[start : end+1]
 
 		for _, singleByte := range bytesAbove {
 			var bytes []byte
@@ -61,9 +56,9 @@ func isValidPartNumber(line int, number PotentialPartNumber, input [][]byte) boo
 		}
 	}
 
-	if number.position.end+1 < len(input[line]) {
+	if number.position.end < len(input[line]) {
 		workingLine := input[line]
-		singleByte := workingLine[number.position.start+1]
+		singleByte := workingLine[number.position.end]
 
 		var bytes []byte
 		bytes = append(bytes, singleByte)
@@ -82,14 +77,14 @@ func isValidPartNumber(line int, number PotentialPartNumber, input [][]byte) boo
 			start--
 		}
 
-		if end+1 < len(workingLine) {
-			end++
-		}
+		bytesBelow := workingLine[start : end+1]
 
-		bytesAbove := workingLine[start:end]
-		fmt.Println(bytesAbove, number.value)
+		// if number.value == 720 {
+		// 	fmt.Printf("Line: %d, Start: %d, End: %d, Bytes: %s\n", line, start, end, bytesBelow)
+		// 	fmt.Printf("%s\n", input[line])
+		// }
 
-		for _, singleByte := range bytesAbove {
+		for _, singleByte := range bytesBelow {
 			var bytes []byte
 			bytes = append(bytes, singleByte)
 			if r.Match(bytes) {
@@ -102,8 +97,9 @@ func isValidPartNumber(line int, number PotentialPartNumber, input [][]byte) boo
 }
 
 func main() {
-	f, err := os.Open("input.txt")
+	f, err := os.Open("data.txt")
 	// f, err := os.Open("sample.txt")
+	// f, err := os.Open("test.txt")
 
 	if err != nil {
 		log.Fatal(err)
@@ -115,8 +111,7 @@ func main() {
 	r := regexp.MustCompile(`\d+`)
 
 	for scanner.Scan() {
-		content := scanner.Bytes()
-		reference = append(reference, content)
+		reference = append(reference, []byte(scanner.Text()))
 		var rowPotentialParts []PotentialPartNumber
 
 		matches := r.FindAllString(scanner.Text(), -1)
@@ -143,12 +138,8 @@ func main() {
 
 	var total uint
 
-	for i, numbers := range potentialPartNumbers {
-		for _, number := range numbers {
-			if isValidPartNumber(i, number, reference) {
-				total += uint(number.value)
-			}
-		}
+	for i, line := range reference {
+		fmt.Printf("%d: %s\n", i, line)
 	}
 
 	fmt.Println(total)
