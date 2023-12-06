@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 )
 
 type MapEntry struct {
@@ -30,10 +31,32 @@ func main() {
 
 	scanner := bufio.NewScanner(f)
 	stage := 0
+	r := regexp.MustCompile(`(\d+)`)
+	var seeds []uint
 
 	for scanner.Scan() {
 		if !isWhitespace(scanner.Text()) {
 			fmt.Println(scanner.Text())
+			switch stage {
+			case 0:
+				seedsStr := r.FindAllString(scanner.Text(), -1)
+				for _, seedStr := range seedsStr {
+					seed, err := strconv.ParseUint(seedStr, 10, 64)
+
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					seeds = append(seeds, uint(seed))
+				}
+			case 1:
+			}
+
+			continue
 		}
+
+		stage++
 	}
+
+	fmt.Println(seeds)
 }
